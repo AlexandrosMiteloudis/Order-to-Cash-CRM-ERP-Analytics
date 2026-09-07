@@ -1,0 +1,120 @@
+-- Marketing ROI & Lead Source Conversion
+SELECT 
+    lead_source,
+    COUNT(lead_id) AS total_leads,
+    SUM(CASE WHEN status = 'Won' THEN 1 ELSE 0 END) AS won_deals,
+    -- Calculate Conversion Rate
+    ROUND(100.0 * SUM(CASE WHEN status = 'Won' THEN 1 ELSE 0 END) / COUNT(lead_id), 2) AS conversion_rate_pct,
+    -- Calculate Average Days to Close (only for Won deals)
+    ROUND(AVG(
+        CASE 
+            WHEN status = 'Won' THEN CAST(JULIANDAY(closed_date) - JULIANDAY(created_date) AS INTEGER) 
+            ELSE NULL 
+        END
+    ), 1) AS avg_days_to_close
+FROM leads
+GROUP BY lead_source
+ORDER BY conversion_rate_pct DESC;
+
+
+
+-- Sales Rep Performance & Ranking
+WITH RepStats AS (
+    SELECT 
+        sr.rep_name,
+        sr.region,
+        COUNT(l.lead_id) AS total_leads_assigned,
+        SUM(CASE WHEN l.status = 'Won' THEN 1 ELSE 0 END) AS won_deals,
+        ROUND(100.0 * SUM(CASE WHEN l.status = 'Won' THEN 1 ELSE 0 END) / COUNT(l.lead_id), 2) AS win_rate_pct,
+        -- Calculate total revenue from won deals
+        SUM(CASE WHEN l.status = 'Won' THEN o.total_amount ELSE 0 END) AS total_revenue
+    FROM sales_reps sr
+    LEFT JOIN leads l ON sr.rep_id = l.rep_id
+    LEFT JOIN orders o ON l.lead_id = o.lead_id
+    GROUP BY sr.rep_id, sr.rep_name, sr.region
+)
+SELECT 
+    rep_name,
+    region,
+    total_leads_assigned,
+    win_rate_pct,
+    total_revenue,
+    -- WINDOW FUNCTION: Rank reps within their specific region by revenue
+    RANK() OVER(PARTITION BY region ORDER BY total_revenue DESC) as regional_revenue_rank
+FROM RepStats
+ORDER BY total_revenue DESC;
+
+
+
+-- Order-to-Cash bottleneck
+WITH PaymentMetrics AS (
+    SELECT 
+        c.region,
+        c.industry,
+        i.invoice_id,
+        i.status,
+        i.due_date,
+        i.payment_date,
+        o.total_amount,
+        -- Calculate days to pay (only if they actually paid)
+        CASE 
+            WHEN i.payment_date IS NOT NULL 
+            THEN CAST(JULIANDAY(i.payment_date) - JULIANDAY(i.invoice_date) AS INTEGER)
+            ELSE NULL 
+        END AS days_to_pay,
+        -- Calculate days overdue (if unpaid and past due date)
+        CASE 
+            WHEN i.payment_date IS NULL AND DATE('now') > i.due_date 
+            THEN CAST(JULIANDAY(DATE('now')) - JULIANDAY(i.due_date) AS INTEGER)
+            ELSE 0 
+        END AS days_overdue
+    FROM invoices i
+    JOIN orders o ON i.order_id = o.order_id
+    JOIN leads l ON o.lead_id = l.lead_id
+    JOIN customers c ON l.customer_id = c.customer_id
+)
+SELECT 
+    region,
+    industry,
+    COUNT(invoice_id) AS total_invoices,
+    SUM(CASE WHEN status != 'Paid' THEN total_amount ELSE 0 END) AS total_unpaid_revenue,
+    ROUND(AVG(days_to_pay), 1) AS avg_days_to_pay,
+    MAX(days_overdue) AS max_days_overdue
+FROM PaymentMetrics
+GROUP BY region, industry
+ORDER BY total_unpaid_revenue DESC;
+
+
+
+-- Prepare data, create a master table for Power BI
+SELECT 
+    c.company_name,
+    c.industry,
+    c.region AS customer_region,
+    sr.rep_name,
+    sr.region AS rep_region,
+    p.product_name,
+    p.category,
+    l.lead_source,
+    l.status AS lead_status,
+    l.created_date,
+    l.closed_date,
+    o.order_date,
+    o.ship_date,
+    o.total_amount,
+    o.quantity,
+    i.invoice_date,
+    i.due_date,
+    i.payment_date,
+    i.status AS invoice_status,
+    CASE 
+        WHEN i.payment_date IS NOT NULL 
+        THEN CAST(JULIANDAY(i.payment_date) - JULIANDAY(i.invoice_date) AS INTEGER)
+        ELSE NULL 
+    END AS days_to_pay
+FROM customers c
+LEFT JOIN leads l ON c.customer_id = l.customer_id
+LEFT JOIN sales_reps sr ON l.rep_id = sr.rep_id
+LEFT JOIN orders o ON l.lead_id = o.lead_id
+LEFT JOIN products p ON o.product_id = p.product_id
+LEFT JOIN invoices i ON o.order_id = i.order_id;
