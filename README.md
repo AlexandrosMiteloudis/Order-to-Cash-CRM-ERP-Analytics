@@ -1,14 +1,17 @@
 # Order-to-Cash-CRM-ERP-Analytics
 
 📊 End-to-End Order-to-Cash (O2C) Analytics: Optimizing B2B Revenue Operations
+
 🏢 Business Context
 In this simulation, I acted as the lead Data & Business Analyst for a mid-sized B2B company. The executive team was experiencing friction between Sales (pushing for more leads), Operations (struggling with fulfillment bottlenecks), and Finance (concerned about delayed cash flow).
 My objective was to design a relational CRM/ERP database, extract cross-departmental data, and identify actionable bottlenecks in the "Order-to-Cash" lifecycle to improve revenue operations.
+
 🛠️ Technical Stack
 Data Engineering: Python (Faker, Pandas) to generate 5,000+ rows of synthetic, relational data with intentional process anomalies.
 Database Management: SQLite/PostgreSQL relational schema design (6 normalized tables).
 Data Extraction: Advanced SQL utilizing CTEs, Window Functions (RANK()), and Date Math.
 Data Visualization: Power BI (Interactive 3-tab dashboard).
+
 💡 Key Business Insights & Recommendations
 After analyzing the O2C lifecycle, three major findings were identified:
 Sales Rep Performance Anomaly (The "Enterprise Closer"):
