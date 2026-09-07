@@ -10,7 +10,6 @@ My objective was to design a relational CRM/ERP database, extract cross-departme
 Data Engineering: Python (Faker, Pandas) to generate 5,000+ rows of synthetic, relational data with intentional process anomalies.
 Database Management: SQLite/PostgreSQL relational schema design (6 normalized tables).
 Data Extraction: Advanced SQL utilizing CTEs, Window Functions (RANK()), and Date Math.
-Data Visualization: Power BI (Interactive 3-tab dashboard).
 
 💡 Key Business Insights & Recommendations
 After analyzing the O2C lifecycle, three major findings were identified:
@@ -22,6 +21,7 @@ Recommendation: Restructure lead routing. Assign high-value, complex enterprise 
 Trapped Cash in the Tech Sector:
 
 - Finding: The Tech industry holds the highest amount of Outstanding Accounts Receivable ($27k+ in the West region alone), despite having 0 officially "overdue" invoices.
+
 Recommendation: Implement proactive "Net-30" payment reminders 5 days prior to the due date specifically for Tech and Healthcare accounts to accelerate cash flow.
 Marketing Channel Efficiency:
 
