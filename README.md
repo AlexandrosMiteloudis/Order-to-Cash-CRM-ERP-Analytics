@@ -1,5 +1,7 @@
 # Order-to-Cash-CRM-ERP-Analytics
 
+<img width="1741" height="756" alt="Untitled" src="https://github.com/user-attachments/assets/b19e1c51-2b0f-402d-b0e5-ae7f9fe0b5e1" />
+
 📊 End-to-End Order-to-Cash (O2C) Analytics: Optimizing B2B Revenue Operations
 
 🏢 Business Context
